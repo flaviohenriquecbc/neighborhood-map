@@ -5,10 +5,24 @@
   "author": "Flavio H Freitas",
   "license": "MIT",
   "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.0",
+    "babel-preset-env": "^1.3.2",
+    "babelify": "^7.3.0",
+    "browserify": "^14.1.0",
+    "del": "^2.2.2",
     "eslint": "^3.19.0",
     "gulp": "^3.9.0",
+    "gulp-babel": "^6.1.2",
+    "gulp-browserify": "^0.5.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-connect": "^5.0.0",
     "gulp-minify-css": "^1.2.0",
     "gulp-minify-html": "^1.0.3",
-    "gulp-uglify": "^1.2.0"
+    "gulp-print": "^2.0.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.5.0",
+    "gulp-uglify": "^1.5.4",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
   }
 }

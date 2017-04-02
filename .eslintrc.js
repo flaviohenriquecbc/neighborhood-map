@@ -1,4 +1,9 @@
 module.exports = {
+    "globals": {
+        "ko": true,
+        "google": true,
+        "$": true
+    },
     "env": {
         "browser": true,
         "commonjs": true,

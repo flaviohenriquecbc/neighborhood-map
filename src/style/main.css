@@ -1,0 +1,152 @@
+#map {
+  top: 0px;
+  bottom:0px;
+  height: 100%;
+  left: 0px;
+  position: absolute;
+  right: 0px;
+  z-index:-1;
+  left:340px;
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  -ms-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+#form{
+    display: inline-block;
+    position: absolute;
+    top: 15px;
+    background-color: white;
+    padding: 5px 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 -1px 0px rgba(0,0,0,0.02);
+    padding: 5px 0 5px 10px;
+    z-index: 10;
+    left: 10px;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    -ms-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+#form input[type="text"] {
+    height: 35px;
+    width: 120px;
+    border: 0;
+    padding: 5px;
+    border-right: 1px solid #e2e1e1;
+    margin-right: 5px;
+}
+
+#form select {
+    border: 0;
+    height: 35px;
+    background-color: white;
+    width: 110px;
+}
+
+#form button {
+    background-image: url(./../img/search.png);
+    width: 29px;
+    height: 27px;
+    border: 0;
+    background-size: 80px 27px;
+    float: right;
+    margin-left: 5px;
+    margin-top: 4px;
+    margin-right: 5px;
+    background-color: white;
+}
+
+#form input[type="text"] ::-webkit-input-placeholder,
+#form input[type="text"] :-moz-placeholder,
+#form input[type="text"] ::-moz-placeholder,
+#form input[type="text"] :-ms-input-placeholder { /* WebKit, Blink, Edge */
+    color:    grey;
+}
+
+.results {
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow: scroll;
+    padding: 11px;
+    width: 340px;
+    max-width: 100%;
+    z-index: 4;
+    padding-top: 78px;
+    position: absolute;
+    background-color: white;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    -ms-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.results ul {
+  padding: 0;
+  list-style-type: none;
+}
+
+.results ul a {
+  display: inline-block;
+  width: 100%;
+  border-bottom: 1px solid #e2e2e2;
+  padding: 10px 5px;
+}
+
+.blue-box {
+    background-color: #3d7ae1;
+    width: 340px;
+    height: 74px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    -ms-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.blue-box button {
+    right: 5px;
+    position: absolute;
+    top: 20px;
+    background: url(../img/clear.png);
+    color: #dedede;
+    width: 20px;
+    height: 30px;
+    border: 0;
+    background-size: 107px 27px;
+    margin: 0;
+    padding: 0;
+    background-position: 5px 5px;
+    padding: 18px;
+    background-repeat: no-repeat;
+}
+
+#form button:focus,
+.blue-box button:focus {
+    outline:0;
+}
+
+.left-negative {
+    left: -340px!important;
+}
+
+.left-negative-partial {
+    left: -300px!important;
+}
+
+.map-full {
+    left: 0!important;
+}
+
+#pano {
+    width: 200px;
+    height: 200px;
+}
