@@ -7,18 +7,23 @@ This project uses:
 * Google Maps API
 * Google Street View API
 * Google Places API
-
+* Foursquare API
 
 ### Requirements
 
-* Gulp
+* Gulp (http://gulpjs.com/)
+* NPM (https://www.npmjs.com/)
 
 ### Running the project
 1. Clone the project
 2. Run:
 
 ```python
+    $ npm install
     $ gulp
 ```
+
+3. Open file dist/index.html
+
 
 Tadaa! You have the map and you can take a look where you can have fun tonight

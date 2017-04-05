@@ -115,16 +115,61 @@ var Map = function () {
          * @param {object} data 
          * @param {string} status 
          * @param {object} marker 
+         */
+
+    }, {
+        key: 'getInstaPhotos',
+        value: function getInstaPhotos(data, marker) {}
+    }, {
+        key: 'getWikiArticle',
+        value: function getWikiArticle(marker) {
+            // get wiki article
+            var address = marker.vicinity;
+            var wikiURl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + address + '&format=json&callback=wikiCallBack';
+
+            var wikiRequestTimeout = setTimeout(function () {
+                alert('failed to get wikipedia resources');
+                $('#wiki').text('No Wiki article');
+            }, 8000);
+
+            $.ajax({
+                url: wikiURl,
+                dataType: 'jsonp',
+                success: function success(response) {
+                    var articleList = response[1];
+                    var articleStr = articleList[0];
+                    var url = 'http://wikipedia.org/wiki/' + articleStr;
+                    if (articleStr) {
+                        $('#wiki').html('<p>Wiki article: <a target="_blank" href="' + url + '" >' + articleStr + '</a></p>');
+                    } else {
+                        $('#wiki').html('<p>No Wiki article</p>');
+                    }
+                    clearTimeout(wikiRequestTimeout);
+                }
+            });
+        }
+
+        /**
+         * In case the status is OK, which means the pano was found, compute the
+         * position of the streetview image, then calculate the heading, then get a
+         * panorama from that and set the options
+         * @param {object} data 
+         * @param {string} status 
+         * @param {object} marker 
          * @param {object} infowindow 
          */
 
     }, {
-        key: 'getStreetView',
-        value: function getStreetView(data, status, marker, infowindow) {
+        key: 'getStreetViewAndInta',
+        value: function getStreetViewAndInta(data, status, marker, infowindow) {
+
+            //get wiki article
+            Map.getWikiArticle(marker);
+
             if (status == google.maps.StreetViewStatus.OK) {
                 var nearStreetViewLocation = data.location.latLng;
                 var heading = google.maps.geometry.spherical.computeHeading(nearStreetViewLocation, marker.position);
-                infowindow.setContent('<h5>' + marker.title + '</h5><div id="pano"></div>');
+                infowindow.setContent('<p><h5>' + marker.title + '</h5><h7>' + marker.vicinity + '</h7><div id="wiki"></div></p><div id="pano"></div>');
                 var panoramaOptions = {
                     position: nearStreetViewLocation,
                     pov: {
@@ -134,7 +179,7 @@ var Map = function () {
                 };
                 new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramaOptions);
             } else {
-                infowindow.setContent('<h5>' + marker.title + '</h5>' + '<div>No Street View Found</div>');
+                infowindow.setContent('<p><h5>${marker.title}</h5><h7>${marker.vicinity}</h7><div id="wiki"></div></p><div id="pano">No StreetView Found</div>');
             }
         }
 
@@ -164,7 +209,7 @@ var Map = function () {
                 // Use streetview service to get the closest streetview image within
                 // 50 meters of the markers position
                 streetViewService.getPanoramaByLocation(marker.position, radius, function (data, status) {
-                    return Map.getStreetView(data, status, marker, infowindow);
+                    return Map.getStreetViewAndInta(data, status, marker, infowindow);
                 });
                 // Open the infowindow on the correct marker.
                 infowindow.open(map, marker);
@@ -186,6 +231,12 @@ var Map = function () {
             markers = [];
             return markers;
         }
+    }, {
+        key: 'makeMarkerIcon',
+        value: function makeMarkerIcon(markerColor) {
+            var markerImage = new google.maps.MarkerImage('http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor + '|40|_|%E2%80%A2', new google.maps.Size(21, 34), new google.maps.Point(0, 0), new google.maps.Point(10, 34), new google.maps.Size(21, 34));
+            return markerImage;
+        }
 
         /**
          * Populate the map with the results received
@@ -200,30 +251,40 @@ var Map = function () {
             // remove all previous markers
             var _markers = Map.removeMarkers(markers);
 
+            // Style the markers a bit. This will be our listing marker icon.
+            var defaultIcon = Map.makeMarkerIcon('0091ff');
+
+            // Create a "highlighted location" marker color for when the user
+            // mouses over the marker.
+            var highlightedIcon = Map.makeMarkerIcon('FFFF24');
+
             var bounds = new google.maps.LatLngBounds();
             places.forEach(function (place) {
-                var image = {
-                    url: place.icon,
-                    size: new google.maps.Size(71, 71),
-                    origin: new google.maps.Point(0, 0),
-                    anchor: new google.maps.Point(17, 34),
-                    scaledSize: new google.maps.Size(25, 25)
-                };
+                // const image = {
+                //     url: place.icon,
+                //     size: new google.maps.Size(71, 71),
+                //     origin: new google.maps.Point(0, 0),
+                //     anchor: new google.maps.Point(17, 34),
+                //     scaledSize: new google.maps.Size(25, 25)
+                // };
 
-                var imageHover = {
-                    url: place.icon,
-                    size: new google.maps.Size(75, 75),
-                    origin: new google.maps.Point(-2, -2),
-                    anchor: new google.maps.Point(17, 34),
-                    scaledSize: new google.maps.Size(29, 29)
-                };
+                // const imageHover = {
+                //     url: place.icon,
+                //     size: new google.maps.Size(71, 71),
+                //     origin: new google.maps.Point(0, 0),
+                //     anchor: new google.maps.Point(17, 34),
+                //     scaledSize: new google.maps.Size(25, 25)
+                // };
 
                 var marker = new google.maps.Marker({
                     map: map,
-                    icon: image,
+                    icon: defaultIcon,
                     title: place.name,
                     position: place.geometry.location,
-                    animation: google.maps.Animation.DROP
+                    animation: google.maps.Animation.DROP,
+                    id: place.id,
+                    vicinity: place.vicinity,
+                    photo: place.photos && place.photos[0] && place.photos[0].getUrl({ 'maxWidth': 70, 'maxHeight': 70 })
                 });
 
                 marker.addListener('click', function () {
@@ -232,10 +293,10 @@ var Map = function () {
                 // Two event listeners - one for mouseover, one for mouseout,
                 // to change the colors back and forth.
                 marker.addListener('mouseover', function () {
-                    marker.setIcon(imageHover);
+                    marker.setIcon(highlightedIcon);
                 });
                 marker.addListener('mouseout', function () {
-                    marker.setIcon(image);
+                    marker.setIcon(defaultIcon);
                 });
 
                 places.innerHTML += '<li>' + place.name + '</li>';
@@ -246,6 +307,29 @@ var Map = function () {
             });
             map.fitBounds(bounds);
             return _markers;
+        }
+    }, {
+        key: 'toggleBounce',
+        value: function toggleBounce(marker) {
+            if (marker.getAnimation() !== null) {
+                marker.setAnimation(null);
+            } else {
+                marker.setAnimation(google.maps.Animation.BOUNCE);
+            }
+        }
+    }, {
+        key: 'hideFilteredMarkers',
+        value: function hideFilteredMarkers(filteredMarkers, allMarkers, map) {
+            allMarkers.forEach(function (item) {
+                var wasFiltered = !filteredMarkers.some(function (itemAll) {
+                    return itemAll.id === item.id;
+                });
+                if (wasFiltered) {
+                    item.setMap(null);
+                } else {
+                    item.setMap(map);
+                }
+            });
         }
 
         /**
@@ -333,17 +417,46 @@ var ViewModel = function ViewModel() {
     });
     this.selectedType = ko.observable();
     this.selectedCity = ko.observable(_variables.preferredCity);
-    var map = _map2.default.initMap();
-    var infowindow = new google.maps.InfoWindow();
+    var map = void 0;
+    var infowindow = void 0;
+
+    // init map when google api is loaded
+    this.initMap = function () {
+        map = _map2.default.initMap();
+        infowindow = new google.maps.InfoWindow();
+        _this.search();
+    };
+
+    // the markers to show on the map
     this.markers = ko.observable([]);
+
+    // text to filter the markers
+    this.filterText = ko.observable('');
+
+    // the filtered markers
+    this.markersToShow = ko.computed(function () {
+        var _markers = void 0;
+        if (!_this.filterText()) {
+            // No input found, return all items
+            _markers = _this.markers();
+        }
+        // input found, match keyword to filter
+        _markers = ko.utils.arrayFilter(_this.markers(), function (item) {
+            return item.title.toLowerCase().indexOf(_this.filterText().toLowerCase()) !== -1;
+        });
+
+        _map2.default.hideFilteredMarkers(_markers, _this.markers(), map);
+        return _markers;
+    });
+
     // search for new places in the city of type specified
     this.search = function () {
+        _this.filterText('');
         var markersPromise = _map2.default.search(map, _this.markers(), infowindow, _this.selectedCity(), _this.selectedType() ? _this.selectedType().type() : '');
         markersPromise.then(function (result) {
             return _this.markers(result);
         });
     };
-    this.search();
     // show the chosen marker on the map
     this.showMarker = function (marker) {
         _map2.default.populateInfoWindow(map, marker, infowindow);
@@ -355,6 +468,14 @@ var ViewModel = function ViewModel() {
         setTimeout(function () {
             return google.maps.event.trigger(map, 'resize');
         }, 500);
+    };
+
+    this.onMouseOver = function (marker) {
+        _map2.default.toggleBounce(marker);
+    };
+
+    this.onMouseOut = function (marker) {
+        _map2.default.toggleBounce(marker);
     };
 };
 

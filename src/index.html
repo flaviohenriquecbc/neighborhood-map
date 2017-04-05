@@ -26,18 +26,38 @@
           <div class="blue-box" data-bind="css: {'left-negative-partial animation': !isBoxVisible()}">
             <button data-bind="click: toogleSearchBox"/>
           </div>
-          <ul data-bind="foreach: markers">
-            <a data-bind="click: $parent.showMarker" href="#">
-              <li data-bind="text: $data.title"></li>
-            </a>
+          <ul>
+            <li>
+              <input type="text" data-bind="textInput: filterText" class="filter-results" placeholder="Filter the results bellow"/>
+            </li>
+            <div class="items" data-bind="foreach: markersToShow">
+              <a data-bind="click: $parent.showMarker, event: { mouseover: $parent.onMouseOver, mouseout: $parent.onMouseOut }" href="#">
+                <li>
+                  <img data-bind="style {'background-image': 'url(\'' + $data.photo + '\')'}" />
+                  <h5 data-bind="text: $data.title"></h5>
+                  <h9 data-bind="text: $data.vicinity"></h9>
+                </li>
+              </a>
+            </div>
           </ul>
       </div>
       <div id="map" data-bind="css: {'map-full animation': !isBoxVisible()}"></div>
     </div>
-
-  <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing,places&key=AIzaSyDSkRsrE76n3aMmeOnbx7C2XzFk9eyj0qw&v=3&callback="></script>
   <script src="js/lib/knockout-3.2.0.js"></script>
   <script src="js/lib/jquery.min.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    // show error if google maps doesnt load
+    var timeoutId = window.setTimeout(function() {
+        alert("Error loading Google Maps!");
+    }, 2000);
+    function onInit() {
+        window.clearTimeout(timeoutId);
+        // call ViewModel function
+        ko.contextFor(document.getElementById('map')).$data.initMap();
+        
+    }
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing,places&key=AIzaSyDSkRsrE76n3aMmeOnbx7C2XzFk9eyj0qw&v=3&callback=onInit"></script>
 </body>
 </html>

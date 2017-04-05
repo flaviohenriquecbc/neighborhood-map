@@ -42,8 +42,13 @@ gulp.task('build', function(){
     ;
 });
 
+gulp.task('watch', () => {
+    gulp.watch('src/js/**/*.js', ['copylib', 'build']);
+    gulp.watch('src/style/*.css', ['minicss']);
+});
+
 // Default
-gulp.task('default', ['minicss', 'build', 'minihtml', 'copylib', 'copyImg'], function() {
+gulp.task('default', ['watch','minicss', 'build', 'minihtml', 'copylib', 'copyImg'], function() {
     // watch for HTML changes
     gulp.watch('./src/index.html', function() {
         gulp.run('minihtml');

@@ -22,14 +22,57 @@ export default class Map {
      * @param {object} data 
      * @param {string} status 
      * @param {object} marker 
+     */     
+    static getInstaPhotos(data, marker){
+
+    }
+
+    static getWikiArticle(marker) {
+        // get wiki article
+        const address = marker.vicinity;
+        const wikiURl = `http://en.wikipedia.org/w/api.php?action=opensearch&search=${address}&format=json&callback=wikiCallBack`;
+
+        const wikiRequestTimeout = setTimeout(function() {
+            alert('failed to get wikipedia resources');
+            $('#wiki').text('No Wiki article');
+        }, 8000);
+
+        $.ajax({
+            url: wikiURl,
+            dataType: 'jsonp',
+            success: function(response) {
+                var articleList = response[1];
+                const articleStr = articleList[0];
+                var url = 'http://wikipedia.org/wiki/' + articleStr;
+                if (articleStr) {
+                    $('#wiki').html(`<p>Wiki article: <a target="_blank" href="${url}" >${articleStr}</a></p>`);
+                } else {
+                    $('#wiki').html('<p>No Wiki article</p>');
+                }
+                clearTimeout(wikiRequestTimeout);
+            },
+        });
+    }
+
+    /**
+     * In case the status is OK, which means the pano was found, compute the
+     * position of the streetview image, then calculate the heading, then get a
+     * panorama from that and set the options
+     * @param {object} data 
+     * @param {string} status 
+     * @param {object} marker 
      * @param {object} infowindow 
      */
-    static getStreetView(data, status, marker, infowindow) {
+    static getStreetViewAndInta(data, status, marker, infowindow) {
+        
+        //get wiki article
+        Map.getWikiArticle(marker);
+
         if (status == google.maps.StreetViewStatus.OK) {
             const nearStreetViewLocation = data.location.latLng;
             const heading = google.maps.geometry.spherical
                                     .computeHeading(nearStreetViewLocation, marker.position);
-            infowindow.setContent('<h5>' + marker.title + '</h5><div id="pano"></div>');
+            infowindow.setContent(`<p><h5>${marker.title}</h5><h7>${marker.vicinity}</h7><div id="wiki"></div></p><div id="pano"></div>`);
             const panoramaOptions = {
                 position: nearStreetViewLocation,
                 pov: {
@@ -39,8 +82,7 @@ export default class Map {
             };
             new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramaOptions);
         } else {
-            infowindow.setContent('<h5>' + marker.title + '</h5>' +
-            '<div>No Street View Found</div>');
+            infowindow.setContent('<p><h5>${marker.title}</h5><h7>${marker.vicinity}</h7><div id="wiki"></div></p><div id="pano">No StreetView Found</div>');
         }
     }
 
@@ -66,7 +108,7 @@ export default class Map {
             const radius = 50;
             // Use streetview service to get the closest streetview image within
             // 50 meters of the markers position
-            streetViewService.getPanoramaByLocation(marker.position, radius, (data, status) => Map.getStreetView(data, status, marker, infowindow));
+            streetViewService.getPanoramaByLocation(marker.position, radius, (data, status) => Map.getStreetViewAndInta(data, status, marker, infowindow));
             // Open the infowindow on the correct marker.
             infowindow.open(map, marker);
         }
@@ -86,6 +128,17 @@ export default class Map {
         return markers;
     }
 
+    static makeMarkerIcon(markerColor) {
+        var markerImage = new google.maps.MarkerImage(
+          'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
+          '|40|_|%E2%80%A2',
+          new google.maps.Size(21, 34),
+          new google.maps.Point(0, 0),
+          new google.maps.Point(10, 34),
+          new google.maps.Size(21,34));
+        return markerImage;
+    }
+
     /**
      * Populate the map with the results received
      * @param {object} map - the google maps map
@@ -95,31 +148,41 @@ export default class Map {
     static createMarkers(map, markers, places, infowindow) {
         // remove all previous markers
         let _markers = Map.removeMarkers(markers);
+        
+        // Style the markers a bit. This will be our listing marker icon.
+        const defaultIcon = Map.makeMarkerIcon('0091ff');
+
+        // Create a "highlighted location" marker color for when the user
+        // mouses over the marker.
+        const highlightedIcon = Map.makeMarkerIcon('FFFF24');
 
         var bounds = new google.maps.LatLngBounds();
         places.forEach((place) => {
-            const image = {
-                url: place.icon,
-                size: new google.maps.Size(71, 71),
-                origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(17, 34),
-                scaledSize: new google.maps.Size(25, 25)
-            };
+            // const image = {
+            //     url: place.icon,
+            //     size: new google.maps.Size(71, 71),
+            //     origin: new google.maps.Point(0, 0),
+            //     anchor: new google.maps.Point(17, 34),
+            //     scaledSize: new google.maps.Size(25, 25)
+            // };
 
-            const imageHover = {
-                url: place.icon,
-                size: new google.maps.Size(75, 75),
-                origin: new google.maps.Point(-2, -2),
-                anchor: new google.maps.Point(17, 34),
-                scaledSize: new google.maps.Size(29, 29)
-            };
+            // const imageHover = {
+            //     url: place.icon,
+            //     size: new google.maps.Size(71, 71),
+            //     origin: new google.maps.Point(0, 0),
+            //     anchor: new google.maps.Point(17, 34),
+            //     scaledSize: new google.maps.Size(25, 25)
+            // };
 
             const marker = new google.maps.Marker({
                 map: map,
-                icon: image,
+                icon: defaultIcon,
                 title: place.name,
                 position: place.geometry.location,
-                animation: google.maps.Animation.DROP
+                animation: google.maps.Animation.DROP,
+                id: place.id,
+                vicinity: place.vicinity,
+                photo: place.photos && place.photos[0] && place.photos[0].getUrl({'maxWidth': 70, 'maxHeight': 70})
             });
 
             marker.addListener('click', function() {
@@ -128,10 +191,10 @@ export default class Map {
             // Two event listeners - one for mouseover, one for mouseout,
             // to change the colors back and forth.
             marker.addListener('mouseover', function() {
-                marker.setIcon(imageHover);
+                marker.setIcon(highlightedIcon);
             });
             marker.addListener('mouseout', function() {
-                marker.setIcon(image);
+                marker.setIcon(defaultIcon);
             });
 
             places.innerHTML += '<li>' + place.name + '</li>';
@@ -142,6 +205,26 @@ export default class Map {
         });
         map.fitBounds(bounds);
         return _markers;
+    }
+
+    static toggleBounce(marker) {
+        if (marker.getAnimation() !== null) {
+            marker.setAnimation(null);
+        } else {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+    }
+
+    static hideFilteredMarkers(filteredMarkers, allMarkers, map) {
+        allMarkers.forEach((item) => {
+            const wasFiltered = !filteredMarkers.some(itemAll => itemAll.id === item.id);
+            if (wasFiltered) {
+                item.setMap(null);
+            } else {
+                item.setMap(map);
+            }
+        });
+        
     }
 
     /**
