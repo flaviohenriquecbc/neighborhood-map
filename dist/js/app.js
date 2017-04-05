@@ -109,17 +109,10 @@ var Map = function () {
         }
 
         /**
-         * In case the status is OK, which means the pano was found, compute the
-         * position of the streetview image, then calculate the heading, then get a
-         * panorama from that and set the options
-         * @param {object} data 
-         * @param {string} status 
-         * @param {object} marker 
+         * Get Wikipedia article for the marker location
+         * @param {*} marker : marker of the place
          */
 
-    }, {
-        key: 'getInstaPhotos',
-        value: function getInstaPhotos(data, marker) {}
     }, {
         key: 'getWikiArticle',
         value: function getWikiArticle(marker) {

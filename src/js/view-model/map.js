@@ -16,17 +16,9 @@ export default class Map {
     }
 
     /**
-     * In case the status is OK, which means the pano was found, compute the
-     * position of the streetview image, then calculate the heading, then get a
-     * panorama from that and set the options
-     * @param {object} data 
-     * @param {string} status 
-     * @param {object} marker 
-     */     
-    static getInstaPhotos(data, marker){
-
-    }
-
+     * Get Wikipedia article for the marker location
+     * @param {*} marker : marker of the place
+     */
     static getWikiArticle(marker) {
         // get wiki article
         const address = marker.vicinity;
@@ -41,9 +33,9 @@ export default class Map {
             url: wikiURl,
             dataType: 'jsonp',
             success: function(response) {
-                var articleList = response[1];
+                const articleList = response[1];
                 const articleStr = articleList[0];
-                var url = 'http://wikipedia.org/wiki/' + articleStr;
+                const url = `http://wikipedia.org/wiki/${articleStr}`;
                 if (articleStr) {
                     $('#wiki').html(`<p>Wiki article: <a target="_blank" href="${url}" >${articleStr}</a></p>`);
                 } else {
@@ -129,7 +121,7 @@ export default class Map {
     }
 
     static makeMarkerIcon(markerColor) {
-        var markerImage = new google.maps.MarkerImage(
+        const markerImage = new google.maps.MarkerImage(
           'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
           '|40|_|%E2%80%A2',
           new google.maps.Size(21, 34),
@@ -156,7 +148,7 @@ export default class Map {
         // mouses over the marker.
         const highlightedIcon = Map.makeMarkerIcon('FFFF24');
 
-        var bounds = new google.maps.LatLngBounds();
+        const bounds = new google.maps.LatLngBounds();
         places.forEach((place) => {
             // const image = {
             //     url: place.icon,
@@ -202,7 +194,7 @@ export default class Map {
                 marker.setIcon(defaultIcon);
             });
 
-            places.innerHTML += '<li>' + place.name + '</li>';
+            places.innerHTML += `<li>${place.name}</li>`;
 
             _markers.push(marker);
 
@@ -250,8 +242,8 @@ export default class Map {
                 const urlGeocodes= `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GOOGLE_APIKEY}`;
 
                 $.getJSON(urlGeocodes, (data) => {
-                    var service = new google.maps.places.PlacesService(map);
-                    var request = {
+                    const service = new google.maps.places.PlacesService(map);
+                    const request = {
                         location: new google.maps.LatLng(data.results[0].geometry.location.lat, data.results[0].geometry.location.lng),
                         radius: '5000',
                         types: [type]
