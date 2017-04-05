@@ -287,7 +287,12 @@ var Map = function () {
                     photo: place.photos && place.photos[0] && place.photos[0].getUrl({ 'maxWidth': 70, 'maxHeight': 70 })
                 });
 
+                google.maps.event.addDomListener(window, 'resize', function () {
+                    map.fitBounds(bounds);
+                });
+
                 marker.addListener('click', function () {
+                    marker.setAnimation(google.maps.Animation.DROP);
                     Map.populateInfoWindow(map, marker, infowindow);
                 });
                 // Two event listeners - one for mouseover, one for mouseout,
@@ -310,8 +315,8 @@ var Map = function () {
         }
     }, {
         key: 'toggleBounce',
-        value: function toggleBounce(marker) {
-            if (marker.getAnimation() !== null) {
+        value: function toggleBounce(marker, animate) {
+            if (!animate) {
                 marker.setAnimation(null);
             } else {
                 marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -459,6 +464,7 @@ var ViewModel = function ViewModel() {
     };
     // show the chosen marker on the map
     this.showMarker = function (marker) {
+        marker.setAnimation(google.maps.Animation.DROP);
         _map2.default.populateInfoWindow(map, marker, infowindow);
     };
 
@@ -471,11 +477,11 @@ var ViewModel = function ViewModel() {
     };
 
     this.onMouseOver = function (marker) {
-        _map2.default.toggleBounce(marker);
+        _map2.default.toggleBounce(marker, true);
     };
 
     this.onMouseOut = function (marker) {
-        _map2.default.toggleBounce(marker);
+        _map2.default.toggleBounce(marker, false);
     };
 };
 

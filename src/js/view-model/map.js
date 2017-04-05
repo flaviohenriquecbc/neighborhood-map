@@ -185,7 +185,12 @@ export default class Map {
                 photo: place.photos && place.photos[0] && place.photos[0].getUrl({'maxWidth': 70, 'maxHeight': 70})
             });
 
+            google.maps.event.addDomListener(window, 'resize', function() {
+                map.fitBounds(bounds);
+            });
+
             marker.addListener('click', function() {
+                marker.setAnimation(google.maps.Animation.DROP);
                 Map.populateInfoWindow(map, marker, infowindow);
             });
             // Two event listeners - one for mouseover, one for mouseout,
@@ -207,8 +212,8 @@ export default class Map {
         return _markers;
     }
 
-    static toggleBounce(marker) {
-        if (marker.getAnimation() !== null) {
+    static toggleBounce(marker, animate) {
+        if (!animate) {
             marker.setAnimation(null);
         } else {
             marker.setAnimation(google.maps.Animation.BOUNCE);

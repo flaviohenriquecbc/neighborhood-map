@@ -51,6 +51,7 @@ export default class ViewModel {
         };
         // show the chosen marker on the map
         this.showMarker = (marker) => {
+            marker.setAnimation(google.maps.Animation.DROP);
             Map.populateInfoWindow(map, marker, infowindow);
         };
 
@@ -61,11 +62,11 @@ export default class ViewModel {
         };
 
         this.onMouseOver = (marker) => {
-            Map.toggleBounce(marker);
+            Map.toggleBounce(marker, true);
         };
 
         this.onMouseOut = (marker) => {
-            Map.toggleBounce(marker);
+            Map.toggleBounce(marker, false);
         };
     }
 }
