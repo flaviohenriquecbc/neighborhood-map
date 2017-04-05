@@ -7,7 +7,7 @@ This project uses:
 * Google Maps API
 * Google Street View API
 * Google Places API
-* Foursquare API
+* Wikipedia API
 
 ### Requirements
 
