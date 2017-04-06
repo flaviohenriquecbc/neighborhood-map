@@ -50,16 +50,14 @@
   <script src="js/app.js"></script>
   <script>
     // show error if google maps doesnt load
-    var timeoutId = window.setTimeout(function() {
+    function mapError() {
         alert("Error loading Google Maps!");
-    }, 2000);
+    }
     function onInit() {
-        window.clearTimeout(timeoutId);
         // call ViewModel function
         ko.contextFor(document.getElementById('map')).$data.initMap();
-        
     }
   </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing,places&key=AIzaSyDSkRsrE76n3aMmeOnbx7C2XzFk9eyj0qw&v=3&callback=onInit"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing,places&key=AIzaSyDSkRsrE76n3aMmeOnbx7C2XzFk9eyj0qw&v=3&callback=onInit" onerror="mapError()"></script>
 </body>
 </html>

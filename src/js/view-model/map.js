@@ -16,33 +16,72 @@ export default class Map {
     }
 
     /**
+     * Show the infowindow on the marker with the details, wiki and streetview image
+     * @param {*} articleStr The name of the wiki article
+     * @param {*} wikiUrl the url of the wiki article
+     * @param {*} data the streeview data
+     * @param {*} status the status of street view
+     * @param {*} marker the marker clicked
+     * @param {*} infowindow the infowindow instance
+     */
+    static openInfoWindow(articleStr, wikiUrl, data, status, marker, infowindow){
+        if (status == google.maps.StreetViewStatus.OK) {
+            const nearStreetViewLocation = data.location.latLng;
+            const heading = google.maps.geometry.spherical
+                                    .computeHeading(nearStreetViewLocation, marker.position);
+            infowindow.setContent(Map.getWindowContent(marker.title, marker.vicinity, wikiUrl, articleStr));
+            const panoramaOptions = {
+                position: nearStreetViewLocation,
+                pov: {
+                    heading: heading,
+                    pitch: 30
+                }
+            };
+            new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramaOptions);
+        } else {
+            infowindow.setContent(Map.getWindowContent(marker.title, marker.vicinity, wikiUrl, articleStr, 'No StreetView Found'));
+        }
+    }
+
+    /**
+     * get html content of the infowindow
+     * @param {*} title the title of the marker
+     * @param {*} address the address of the marker
+     * @param {*} wikiUrl the wikiurl of the marker
+     * @param {*} wikiArticleStr the wiki article of the marker
+     * @param {*} streetViewMsg the streetview of the marker
+     */
+    static getWindowContent(title, address, wikiUrl, wikiArticleStr, streetViewMsg) {
+        const wikiArticle = wikiArticleStr
+                ? `Wiki article: <a target="_blank" href="${wikiUrl}" >${wikiArticleStr}</a>`
+                : 'No Wiki article';
+        return `<p><h5>${title}</h5><h7>${address}</h7><p>${wikiArticle}</p></p><div id="pano">${streetViewMsg}</div>`;
+    }
+
+    /**
      * Get Wikipedia article for the marker location
      * @param {*} marker : marker of the place
      */
-    static getWikiArticle(marker) {
+    static getWikiArticle(data, status, marker, infowindow) {
         // get wiki article
         const address = marker.vicinity;
         const wikiURl = `http://en.wikipedia.org/w/api.php?action=opensearch&search=${address}&format=json&callback=wikiCallBack`;
 
-        const wikiRequestTimeout = setTimeout(function() {
-            alert('failed to get wikipedia resources');
-            $('#wiki').text('No Wiki article');
-        }, 8000);
-
         $.ajax({
             url: wikiURl,
             dataType: 'jsonp',
-            success: function(response) {
-                const articleList = response[1];
-                const articleStr = articleList[0];
-                const url = `http://wikipedia.org/wiki/${articleStr}`;
-                if (articleStr) {
-                    $('#wiki').html(`<p>Wiki article: <a target="_blank" href="${url}" >${articleStr}</a></p>`);
-                } else {
-                    $('#wiki').html('<p>No Wiki article</p>');
-                }
-                clearTimeout(wikiRequestTimeout);
-            },
+        }).done(function (response) {
+            const articleList = response[1];
+            const articleStr = articleList[0];
+            const url = `http://wikipedia.org/wiki/${articleStr}`;
+
+            // print infowindow
+            Map.openInfoWindow(articleStr, url, data, status, marker, infowindow);
+        }).fail(function () {
+            alert('failed to get wikipedia resources');
+
+            // print infowindow
+            Map.openInfoWindow(undefined, undefined, data, status, marker, infowindow);
         });
     }
 
@@ -56,26 +95,8 @@ export default class Map {
      * @param {object} infowindow 
      */
     static getStreetViewAndInta(data, status, marker, infowindow) {
-        
         //get wiki article
-        Map.getWikiArticle(marker);
-
-        if (status == google.maps.StreetViewStatus.OK) {
-            const nearStreetViewLocation = data.location.latLng;
-            const heading = google.maps.geometry.spherical
-                                    .computeHeading(nearStreetViewLocation, marker.position);
-            infowindow.setContent(`<p><h5>${marker.title}</h5><h7>${marker.vicinity}</h7><div id="wiki"></div></p><div id="pano"></div>`);
-            const panoramaOptions = {
-                position: nearStreetViewLocation,
-                pov: {
-                    heading: heading,
-                    pitch: 30
-                }
-            };
-            new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramaOptions);
-        } else {
-            infowindow.setContent('<p><h5>${marker.title}</h5><h7>${marker.vicinity}</h7><div id="wiki"></div></p><div id="pano">No StreetView Found</div>');
-        }
+        Map.getWikiArticle(data, status, marker, infowindow);
     }
 
     /**
@@ -90,7 +111,7 @@ export default class Map {
         // Check to make sure the infowindow is not already opened on this marker.
         if (infowindow.marker != marker) {
             // Clear the infowindow content to give the streetview time to load.
-            infowindow.setContent('');
+            infowindow.setContent(`<p><h5>${marker.title}</h5><h7>${marker.vicinity}</h7><p>`);
             infowindow.marker = marker;
             // Make sure the marker property is cleared if the infowindow is closed.
             infowindow.addListener('closeclick', function() {
@@ -204,6 +225,11 @@ export default class Map {
         return _markers;
     }
 
+    /**
+     * add or remove the animation of the marker
+     * @param {object} marker 
+     * @param {boolean} animate if is to add or remove animation
+     */
     static toggleBounce(marker, animate) {
         if (!animate) {
             marker.setAnimation(null);
@@ -212,13 +238,18 @@ export default class Map {
         }
     }
 
-    static hideFilteredMarkers(filteredMarkers, allMarkers, map) {
+    /**
+     * hide the filtered markers
+     * @param {*} filteredMarkers the filtered markers 
+     * @param {*} allMarkers
+     */
+    static hideFilteredMarkers(filteredMarkers, allMarkers) {
         allMarkers.forEach((item) => {
             const wasFiltered = !filteredMarkers.some(itemAll => itemAll.id === item.id);
             if (wasFiltered) {
-                item.setMap(null);
+                item.setVisible(false);
             } else {
-                item.setMap(map);
+                item.setVisible(true);
             }
         });
         
